@@ -33,6 +33,13 @@ func MakeHandler(svc auth.Service, mux *bone.Mux, tracer opentracing.Tracer) *bo
 		opts...,
 	))
 
+	mux.Put("/policies", kithttp.NewServer(
+		kitot.TraceServer(tracer, "delete_policies")(deletePoliciesEndpoint(svc)),
+		decodeCreatePolicyRequest,
+		encodeResponse,
+		opts...,
+	))
+
 	return mux
 }
 

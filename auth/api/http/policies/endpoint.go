@@ -2,6 +2,7 @@ package policies
 
 import (
 	"context"
+
 	"github.com/go-kit/kit/endpoint"
 	"github.com/mainflux/mainflux/auth"
 )
@@ -18,5 +19,20 @@ func createPolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 		}
 
 		return createPolicyRes{created: true}, nil
+	}
+}
+
+func deletePoliciesEndpoint(svc auth.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(createPolicyReq)
+		if err := req.validate(); err != nil {
+			return deletePoliciesRes{}, err
+		}
+
+		if err := svc.DeletePolicies(ctx, req.token, req.Object, req.SubjectIDs, req.Policies); err != nil {
+			return deletePoliciesRes{}, err
+		}
+
+		return deletePoliciesRes{deleted: true}, nil
 	}
 }
