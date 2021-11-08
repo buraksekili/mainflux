@@ -9,7 +9,7 @@ import (
 
 func createPolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(createPolicyReq)
+		req := request.(policiesReq)
 		if err := req.validate(); err != nil {
 			return createPolicyRes{}, err
 		}
@@ -24,7 +24,7 @@ func createPolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 
 func deletePoliciesEndpoint(svc auth.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(createPolicyReq)
+		req := request.(policiesReq)
 		if err := req.validate(); err != nil {
 			return deletePoliciesRes{}, err
 		}
