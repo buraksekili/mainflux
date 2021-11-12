@@ -246,9 +246,12 @@ func (ts *thingsService) UpdateThing(ctx context.Context, token string, thing Th
 		return errors.Wrap(ErrUnauthorizedAccess, err)
 	}
 
-	if err := ts.authorize(ctx, res.GetId(), thing.ID, writeRelationKey); err != nil {
+	if _, err := ts.auth.Authorize(ctx, &mainflux.AuthorizeReq{Objtype: "thing", Obj: thing.ID, Act: writeRelationKey, Subtype: "user", Sub: res.GetId()}); err != nil {
 		return err
 	}
+	// if err := ts.authorize(ctx, res.GetId(), thing.ID, writeRelationKey); err != nil {
+	// 	return err
+	// }
 
 	thing.Owner = res.GetEmail()
 
@@ -260,10 +263,12 @@ func (ts *thingsService) ShareThing(ctx context.Context, token, thingID string, 
 	if err != nil {
 		return errors.Wrap(ErrUnauthorizedAccess, err)
 	}
-
-	if err := ts.authorize(ctx, res.GetId(), thingID, writeRelationKey); err != nil {
+	if _, err := ts.auth.Authorize(ctx, &mainflux.AuthorizeReq{Objtype: "thing", Obj: thingID, Act: writeRelationKey, Subtype: "user", Sub: res.GetId()}); err != nil {
 		return err
 	}
+	// if err := ts.authorize(ctx, res.GetId(), thingID, writeRelationKey); err != nil {
+	// 	return err
+	// }
 
 	return ts.claimOwnership(ctx, thingID, actions, userIDs)
 }
@@ -306,7 +311,8 @@ func (ts *thingsService) ViewThing(ctx context.Context, token, id string) (Thing
 	}
 
 	if _, err := ts.auth.Authorize(ctx, &mainflux.AuthorizeReq{Objtype: "thing", Obj: id, Act: readRelationKey, Subtype: "user", Sub: res.GetId()}); err != nil {
-		return Thing{}, err
+		return Thing{}, errors.Wrap(err, ErrAuthorization)
+
 	}
 	// if err := ts.authorize(ctx, res.GetId(), id, readRelationKey); err != nil {
 	// }
@@ -353,9 +359,12 @@ func (ts *thingsService) RemoveThing(ctx context.Context, token, id string) erro
 		return errors.Wrap(ErrUnauthorizedAccess, err)
 	}
 
-	if err := ts.authorize(ctx, res.GetId(), id, deleteRelationKey); err != nil {
-		return err
+	if _, err := ts.auth.Authorize(ctx, &mainflux.AuthorizeReq{Objtype: "thing", Obj: id, Act: deleteRelationKey, Subtype: "user", Sub: res.GetId()}); err != nil {
+		return errors.Wrap(err, ErrAuthorization)
 	}
+	// if err := ts.authorize(ctx, res.GetId(), id, deleteRelationKey); err != nil {
+	// 	return err
+	// }
 
 	if err := ts.thingCache.Remove(ctx, id); err != nil {
 		return err

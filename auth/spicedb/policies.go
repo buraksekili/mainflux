@@ -53,56 +53,16 @@ func (pa policyAgent) CheckPolicy(ctx context.Context, pr auth.PolicyReq) error 
 }
 
 func (pa policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
-	fmt.Printf("new2 add policy as %#v\n", pr)
-	r := fmt.Sprintf("%s:%s#%s@%s:%s", pr.ObjectType, pr.Object, pr.Relation, pr.SubjectType, pr.Subject)
-	fmt.Println("request is ", r)
 	req := &pb.WriteRelationshipsRequest{Updates: []*pb.RelationshipUpdate{{
 		Operation:    pb.RelationshipUpdate_OPERATION_CREATE,
-		Relationship: tuple.ParseRel(r),
+		Relationship: tuple.ParseRel(fmt.Sprintf("%s:%s#%s@%s:%s", pr.ObjectType, pr.Object, pr.Relation, pr.SubjectType, pr.Subject)),
 	},
 	}}
 	_, err := pa.client.WriteRelationships(ctx, req)
 	if err != nil {
-		fmt.Println("err")
 		return errors.Wrap(err, auth.ErrAuthorization)
 	}
-	fmt.Println("done")
 	return nil
-	// if isSubjectSet(pr.Subject) {
-	// 	req := &pb.WriteRelationshipsRequest{Updates: []*pb.RelationshipUpdate{
-	// 		{
-	// 			Operation: pb.RelationshipUpdate_OPERATION_CREATE,
-	//
-	// 			Relationship: &pb.Relationship{
-	// 				Resource: &pb.ObjectReference{ObjectType: pr.ObjectType, ObjectId: pr.Object},
-	// 				Relation: pr.Relation,
-	// 				Subject:  tuple.ParseRel(pr.Subject),
-	// 			},
-	// 		},
-	// 	}}
-	// 	_, err := pa.client.WriteRelationships(ctx, req)
-	// 	if err != nil {
-	// 		return errors.Wrap(err, auth.ErrAuthorization)
-	// 	}
-	// 	return nil
-	// }
-	//
-	// req := &pb.WriteRelationshipsRequest{Updates: []*pb.RelationshipUpdate{
-	// 	{
-	// 		Operation: pb.RelationshipUpdate_OPERATION_CREATE,
-	//
-	// 		Relationship: &pb.Relationship{
-	// 			Resource: &pb.ObjectReference{ObjectType: pr.ObjectType, ObjectId: pr.Object},
-	// 			Relation: pr.Relation,
-	// 			Subject:  getSubject(pr.SubjectType, pr.Subject),
-	// 		},
-	// 	},
-	// }}
-	// _, err := pa.client.WriteRelationships(ctx, req)
-	// if err != nil {
-	// 	return errors.Wrap(err, auth.ErrAuthorization)
-	// }
-	// return nil
 }
 
 func (pa policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) error {
@@ -111,11 +71,9 @@ func (pa policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) error
 }
 
 func getSubject(subjectType, subjectID string) *pb.SubjectReference {
-	fmt.Println("incoming subject ", subjectID)
 	if isSubjectSet(subjectID) {
 		return &pb.SubjectReference{OptionalRelation: fmt.Sprintf("%s:%s", subjectType, subjectID)}
 	}
-	fmt.Println("not subject set")
 	return &pb.SubjectReference{Object: &pb.ObjectReference{ObjectType: subjectType, ObjectId: subjectID}}
 }
 
