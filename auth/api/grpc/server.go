@@ -149,10 +149,6 @@ func encodeIdentifyResponse(_ context.Context, grpcRes interface{}) (interface{}
 
 func decodeAuthorizeRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*mainflux.AuthorizeReq)
-	fmt.Println()
-	fmt.Printf("req authorize %#v\n", grpcReq)
-	fmt.Printf("req authorize %#v\n", req)
-	fmt.Println()
 	return authReq{SubType: req.GetSubtype(), Sub: req.GetSub(), Act: req.GetAct(), ObjType: req.GetObjtype(), Obj: req.GetObj()}, nil
 }
 
@@ -182,7 +178,7 @@ func decodeAssignRequest(_ context.Context, grpcReq interface{}) (interface{}, e
 
 func decodeDeletePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*mainflux.DeletePolicyReq)
-	return deletePolicyReq{Sub: req.GetSub(), Obj: req.GetObj(), Act: req.GetAct()}, nil
+	return deletePolicyReq{SubType: req.GetSubtype(), Sub: req.GetSub(), Act: req.GetAct(), ObjType: req.GetObjtype(), Obj: req.GetObj()}, nil
 }
 
 func encodeDeletePolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {

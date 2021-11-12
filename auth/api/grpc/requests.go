@@ -126,14 +126,16 @@ func (req addPolicyReq) validate() error {
 }
 
 type deletePolicyReq struct {
-	Sub string
-	Obj string
-	Act string
+	Sub     string
+	Obj     string
+	Act     string
+	SubType string
+	ObjType string
 }
 
 func (req deletePolicyReq) validate() error {
-	if req.Sub == "" || req.Obj == "" || req.Act == "" {
-		return auth.ErrMalformedEntity
-	}
+	// if req.Sub == "" || req.Obj == "" || req.Act == "" {
+	// 	return auth.ErrMalformedEntity
+	// }
 	return nil
 }

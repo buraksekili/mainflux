@@ -92,7 +92,7 @@ func deletePolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 			return deletePolicyRes{}, err
 		}
 
-		err := svc.DeletePolicy(ctx, auth.PolicyReq{Subject: req.Sub, Object: req.Obj, Relation: req.Act})
+		err := svc.DeletePolicy(ctx, auth.PolicyReq{ObjectType: req.ObjType, Object: req.Obj, Relation: req.Act, SubjectType: req.SubType, Subject: req.Sub})
 		if err != nil {
 			return deletePolicyRes{}, err
 		}

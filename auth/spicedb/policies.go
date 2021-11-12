@@ -6,14 +6,12 @@ package spicedb
 import (
 	"context"
 	"fmt"
-	"regexp"
-
-	"github.com/authzed/spicedb/pkg/tuple"
-
-	"github.com/authzed/authzed-go/v1"
+	"io"
+	"strings"
 
 	pb "github.com/authzed/authzed-go/proto/authzed/api/v1"
-
+	"github.com/authzed/authzed-go/v1"
+	"github.com/authzed/spicedb/pkg/tuple"
 	"github.com/mainflux/mainflux/auth"
 	"github.com/mainflux/mainflux/pkg/errors"
 )
@@ -65,24 +63,55 @@ func (pa policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
 	return nil
 }
 
+// DeletePolicy is not implemented! Instead, it just printing the expanding results of the policies.
 func (pa policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) error {
-	// DeletePolicy is not implemented yet for SpiceDB.
-	return nil
-}
+	objectNS := pr.ObjectType
+	relation := pr.Relation
+	subjectNS := pr.SubjectType
+	subjectID, subjectRel := parseSubject(pr.Subject)
 
-func getSubject(subjectType, subjectID string) *pb.SubjectReference {
-	if isSubjectSet(subjectID) {
-		return &pb.SubjectReference{OptionalRelation: fmt.Sprintf("%s:%s", subjectType, subjectID)}
+	request := &pb.LookupResourcesRequest{
+		ResourceObjectType: objectNS,
+		Permission:         relation,
+		Subject: &pb.SubjectReference{
+			Object: &pb.ObjectReference{
+				ObjectType: subjectNS,
+				ObjectId:   subjectID,
+			},
+			OptionalRelation: subjectRel,
+		},
 	}
-	return &pb.SubjectReference{Object: &pb.ObjectReference{ObjectType: subjectType, ObjectId: subjectID}}
-}
-
-// isSubjectSet returns true when given subject is subject set.
-// Otherwise, it returns false.
-func isSubjectSet(subject string) bool {
-	r, err := regexp.Compile(subjectSetRegex)
+	respStream, err := pa.client.LookupResources(context.Background(), request)
 	if err != nil {
-		return false
+		return fmt.Errorf("failed to create lookupresource stream")
 	}
-	return r.MatchString(subject)
+
+	counter := 0
+	for {
+		r, err := respStream.Recv()
+		switch {
+		case err == io.EOF:
+			fmt.Println("DONE/EOF")
+			return nil
+		case err != nil:
+			fmt.Println("DONE")
+			return err
+		default:
+			i := r.ResourceObjectId
+			if i == "" {
+				fmt.Println("FINISHED")
+				return nil
+			}
+			fmt.Printf("%d\t%s\n", counter, i)
+		}
+		counter++
+	}
+}
+
+func parseSubject(subject string) (id, relation string) {
+	sarr := strings.Split(subject, "#")
+	if len(sarr) != 2 {
+		return subject, ""
+	}
+	return sarr[0], sarr[1]
 }
