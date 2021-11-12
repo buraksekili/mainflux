@@ -90,9 +90,11 @@ message AddPolicyRes {
 }
 
 message DeletePolicyReq {
-    string sub = 1;
-    string obj = 2;
-    string act = 3;
+    string sub      = 1;
+    string obj      = 2;
+    string act      = 3;
+    string objtype  = 4;
+    string subtype  = 5;
 }
 
 message DeletePolicyRes {
