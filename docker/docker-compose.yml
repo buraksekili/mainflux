@@ -17,6 +17,17 @@ volumes:
   mainflux-mqtt-broker-volume:
 
 services:
+  spicedb:
+    image: quay.io/authzed/spicedb:v1.0.0
+    container_name: mainflux-spicedb
+    ports:
+      - 8080:8080
+      - 50051:50051
+      - 50053:50053
+    command: spicedb serve-testing
+    networks:
+      - mainflux-base-net
+
   keto:
     image: oryd/keto:v0.6.0-alpha.3
     container_name: mainflux-keto
@@ -125,6 +136,7 @@ services:
     depends_on:
       - auth-db
       - keto
+      - spicedb
     expose:
       - ${MF_AUTH_GRPC_PORT}
     restart: on-failure
@@ -146,6 +158,7 @@ services:
     ports:
       - ${MF_AUTH_HTTP_PORT}:${MF_AUTH_HTTP_PORT}
       - ${MF_AUTH_GRPC_PORT}:${MF_AUTH_GRPC_PORT}
+
     networks:
       - mainflux-base-net
 
