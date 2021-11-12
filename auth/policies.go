@@ -10,9 +10,11 @@ import (
 // PolicyReq represents an argument struct for making a policy related
 // function calls.
 type PolicyReq struct {
-	Subject  string
-	Object   string
-	Relation string
+	Subject     string
+	SubjectType string
+	Object      string
+	ObjectType  string
+	Relation    string
 }
 
 // Authz represents a authorization service. It exposes

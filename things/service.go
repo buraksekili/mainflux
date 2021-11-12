@@ -183,9 +183,9 @@ func (ts *thingsService) CreateThings(ctx context.Context, token string, things 
 		return []Thing{}, errors.Wrap(ErrUnauthorizedAccess, err)
 	}
 
-	if err := ts.authorize(ctx, res.GetId(), usersObjectKey, memberRelationKey); err != nil {
-		return []Thing{}, err
-	}
+	// if err := ts.authorize(ctx, res.GetId(), usersObjectKey, memberRelationKey); err != nil {
+	// 	return []Thing{}, err
+	// }
 
 	ths := []Thing{}
 	for _, thing := range things {
@@ -223,9 +223,19 @@ func (ts *thingsService) createThing(ctx context.Context, thing *Thing, identity
 		return Thing{}, ErrCreateEntity
 	}
 
-	if err := ts.claimOwnership(ctx, ths[0].ID, []string{readRelationKey, writeRelationKey, deleteRelationKey}, []string{identity.GetId()}); err != nil {
-		return Thing{}, err
+	if _, err := ts.auth.AddPolicy(ctx, &mainflux.AddPolicyReq{Objtype: "thing", Obj: ths[0].ID, Act: "administration", Subtype: "administration", Sub: "authorities#member"}); err != nil {
+		return Thing{}, fmt.Errorf("cannot claim admin ownership")
 	}
+
+	for _, relation := range []string{"reader", "writer", "deleter"} {
+		if _, err := ts.auth.AddPolicy(ctx, &mainflux.AddPolicyReq{Objtype: "thing", Obj: ths[0].ID, Act: relation, Subtype: "user", Sub: identity.GetId()}); err != nil {
+			return Thing{}, fmt.Errorf("cannot add thing ownership")
+		}
+	}
+
+	// if err := ts.claimOwnership(ctx, ths[0].ID, []string{readRelationKey, writeRelationKey, deleteRelationKey}, []string{identity.GetId()}); err != nil {
+	// 	return Thing{}, err
+	// }
 
 	return ths[0], nil
 }
@@ -295,9 +305,11 @@ func (ts *thingsService) ViewThing(ctx context.Context, token, id string) (Thing
 		return Thing{}, errors.Wrap(ErrUnauthorizedAccess, err)
 	}
 
-	if err := ts.authorize(ctx, res.GetId(), id, readRelationKey); err != nil {
+	if _, err := ts.auth.Authorize(ctx, &mainflux.AuthorizeReq{Objtype: "thing", Obj: id, Act: readRelationKey, Subtype: "user", Sub: res.GetId()}); err != nil {
 		return Thing{}, err
 	}
+	// if err := ts.authorize(ctx, res.GetId(), id, readRelationKey); err != nil {
+	// }
 
 	return ts.things.RetrieveByID(ctx, res.GetEmail(), id)
 }

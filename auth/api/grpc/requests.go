@@ -87,9 +87,11 @@ func (req membersReq) validate() error {
 // 2. object - an entity over which action will be executed
 // 3. action - type of action that will be executed (read/write)
 type authReq struct {
-	Sub string
-	Obj string
-	Act string
+	Sub     string
+	SubType string
+	Obj     string
+	ObjType string
+	Act     string
 }
 
 func (req authReq) validate() error {
@@ -109,9 +111,11 @@ func (req authReq) validate() error {
 }
 
 type addPolicyReq struct {
-	Sub string
-	Obj string
-	Act string
+	Sub     string
+	SubType string
+	Obj     string
+	ObjType string
+	Act     string
 }
 
 func (req addPolicyReq) validate() error {

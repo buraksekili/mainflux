@@ -5,6 +5,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
@@ -148,7 +149,11 @@ func encodeIdentifyResponse(_ context.Context, grpcRes interface{}) (interface{}
 
 func decodeAuthorizeRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*mainflux.AuthorizeReq)
-	return authReq{Act: req.GetAct(), Obj: req.GetObj(), Sub: req.GetSub()}, nil
+	fmt.Println()
+	fmt.Printf("req authorize %#v\n", grpcReq)
+	fmt.Printf("req authorize %#v\n", req)
+	fmt.Println()
+	return authReq{SubType: req.GetSubtype(), Sub: req.GetSub(), Act: req.GetAct(), ObjType: req.GetObjtype(), Obj: req.GetObj()}, nil
 }
 
 func encodeAuthorizeResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
@@ -158,7 +163,11 @@ func encodeAuthorizeResponse(_ context.Context, grpcRes interface{}) (interface{
 
 func decodeAddPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*mainflux.AddPolicyReq)
-	return addPolicyReq{Sub: req.GetSub(), Obj: req.GetObj(), Act: req.GetAct()}, nil
+	fmt.Println()
+	fmt.Printf("req add policy=> %#v\n", grpcReq)
+	fmt.Printf("req add policy=> %#v\n", req)
+	fmt.Println()
+	return addPolicyReq{SubType: req.GetSubtype(), Sub: req.GetSub(), Act: req.GetAct(), ObjType: req.GetObjtype(), Obj: req.GetObj()}, nil
 }
 
 func encodeAddPolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {

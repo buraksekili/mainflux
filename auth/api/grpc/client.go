@@ -5,6 +5,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-kit/kit/endpoint"
@@ -147,7 +148,7 @@ func (client grpcClient) Authorize(ctx context.Context, req *mainflux.AuthorizeR
 	ctx, close := context.WithTimeout(ctx, client.timeout)
 	defer close()
 
-	res, err := client.authorize(ctx, authReq{Act: req.GetAct(), Obj: req.GetObj(), Sub: req.GetSub()})
+	res, err := client.authorize(ctx, authReq{SubType: req.GetSubtype(), Sub: req.GetSub(), Act: req.GetAct(), ObjType: req.GetObjtype(), Obj: req.GetObj()})
 	if err != nil {
 		return &mainflux.AuthorizeRes{}, err
 	}
@@ -163,10 +164,15 @@ func decodeAuthorizeResponse(_ context.Context, grpcRes interface{}) (interface{
 
 func encodeAuthorizeRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(authReq)
+	fmt.Printf("client/authorize req %#v\n", grpcReq)
+	fmt.Printf("client/authorize req %#v\n", req)
+	fmt.Println()
 	return &mainflux.AuthorizeReq{
-		Sub: req.Sub,
-		Obj: req.Obj,
-		Act: req.Act,
+		Subtype: req.SubType,
+		Sub:     req.Sub,
+		Act:     req.Act,
+		Objtype: req.ObjType,
+		Obj:     req.Obj,
 	}, nil
 }
 
@@ -174,7 +180,7 @@ func (client grpcClient) AddPolicy(ctx context.Context, in *mainflux.AddPolicyRe
 	ctx, close := context.WithTimeout(ctx, client.timeout)
 	defer close()
 
-	res, err := client.addPolicy(ctx, addPolicyReq{Act: in.GetAct(), Obj: in.GetObj(), Sub: in.GetSub()})
+	res, err := client.addPolicy(ctx, addPolicyReq{SubType: in.GetSubtype(), Sub: in.GetSub(), Act: in.GetAct(), ObjType: in.GetObjtype(), Obj: in.GetObj()})
 	if err != nil {
 		return &mainflux.AddPolicyRes{}, err
 	}
@@ -190,10 +196,15 @@ func decodeAddPolicyResponse(_ context.Context, grpcRes interface{}) (interface{
 
 func encodeAddPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(addPolicyReq)
+	fmt.Printf("client/addPolicy req %#v\n", grpcReq)
+	fmt.Printf("client/addPolicy req %#v\n", req)
+	fmt.Println()
 	return &mainflux.AddPolicyReq{
-		Sub: req.Sub,
-		Obj: req.Obj,
-		Act: req.Act,
+		Subtype: req.SubType,
+		Sub:     req.Sub,
+		Act:     req.Act,
+		Objtype: req.ObjType,
+		Obj:     req.Obj,
 	}, nil
 }
 

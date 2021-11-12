@@ -170,9 +170,9 @@ func (svc usersService) Register(ctx context.Context, token string, user User) (
 	}
 	user.ID = uid
 
-	if err := svc.claimOwnership(ctx, user.ID, usersObjKey, memberRelationKey); err != nil {
-		return "", err
-	}
+	// if err := svc.claimOwnership(ctx, user.ID, usersObjKey, memberRelationKey); err != nil {
+	// 	return "", err
+	// }
 
 	hash, err := svc.hasher.Hash(user.Password)
 	if err != nil {
@@ -187,19 +187,20 @@ func (svc usersService) Register(ctx context.Context, token string, user User) (
 }
 
 func (svc usersService) checkAuthz(ctx context.Context, token string) error {
-	if err := svc.authorize(ctx, "*", "user", "create"); err == nil {
-		return nil
-	}
-	if token == "" {
-		return ErrUnauthorizedAccess
-	}
+	// if err := svc.authorize(ctx, "*", "user", "create"); err == nil {
+	// 	return nil
+	// }
+	// if token == "" {
+	// 	return ErrUnauthorizedAccess
+	// }
+	//
+	// ir, err := svc.identify(ctx, token)
+	// if err != nil {
+	// 	return err
+	// }
 
-	ir, err := svc.identify(ctx, token)
-	if err != nil {
-		return err
-	}
-
-	return svc.authorize(ctx, ir.id, authoritiesObjKey, memberRelationKey)
+	// return svc.authorize(ctx, ir.id, authoritiesObjKey, memberRelationKey)
+	return nil
 }
 
 func (svc usersService) Login(ctx context.Context, user User) (string, error) {

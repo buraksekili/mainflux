@@ -1,8 +1,8 @@
-# github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78
-## explicit
+# github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1
+## explicit; go 1.16
 github.com/Azure/go-ansiterm
 github.com/Azure/go-ansiterm/winterm
-# github.com/Microsoft/go-winio v0.4.15-0.20190919025122-fc70bd9a86b5
+# github.com/Microsoft/go-winio v0.5.0
 ## explicit; go 1.12
 github.com/Microsoft/go-winio
 github.com/Microsoft/go-winio/pkg/guid
@@ -11,11 +11,15 @@ github.com/Microsoft/go-winio/pkg/guid
 github.com/Nvveen/Gotty
 # github.com/authzed/authzed-go v0.3.0
 ## explicit; go 1.16
+github.com/authzed/authzed-go/proto/authzed/api/v0
 github.com/authzed/authzed-go/proto/authzed/api/v1
 github.com/authzed/authzed-go/v1
 # github.com/authzed/grpcutil v0.0.0-20211020204402-aba1876830e6
 ## explicit; go 1.16
 github.com/authzed/grpcutil
+# github.com/authzed/spicedb v1.1.0
+## explicit; go 1.16
+github.com/authzed/spicedb/pkg/tuple
 # github.com/beorn7/perks v1.0.1
 ## explicit; go 1.11
 github.com/beorn7/perks/quantile
@@ -31,7 +35,7 @@ github.com/certifi/gocertifi
 # github.com/cespare/xxhash/v2 v2.1.1
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
-# github.com/containerd/continuity v0.0.0-20200709052629-daa8e1ccc0bc
+# github.com/containerd/continuity v0.2.1
 ## explicit; go 1.13
 github.com/containerd/continuity/pathdriver
 # github.com/davecgh/go-spew v1.1.1
@@ -40,7 +44,7 @@ github.com/davecgh/go-spew/spew
 # github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f
 ## explicit
 github.com/dgryski/go-rendezvous
-# github.com/docker/cli v20.10.7+incompatible
+# github.com/docker/cli v20.10.9+incompatible
 ## explicit
 github.com/docker/cli/cli/compose/interpolation
 github.com/docker/cli/cli/compose/loader
@@ -48,7 +52,7 @@ github.com/docker/cli/cli/compose/schema
 github.com/docker/cli/cli/compose/template
 github.com/docker/cli/cli/compose/types
 github.com/docker/cli/opts
-# github.com/docker/docker v20.10.8+incompatible
+# github.com/docker/docker v20.10.9+incompatible
 ## explicit
 github.com/docker/docker/api/types
 github.com/docker/docker/api/types/blkiodev
@@ -78,7 +82,7 @@ github.com/eclipse/paho.mqtt.golang/packets
 # github.com/envoyproxy/protoc-gen-validate v0.6.1
 ## explicit; go 1.12
 github.com/envoyproxy/protoc-gen-validate/validate
-# github.com/fatih/color v1.12.0
+# github.com/fatih/color v1.13.0
 ## explicit; go 1.13
 github.com/fatih/color
 # github.com/fiorix/go-smpp v0.0.0-20210403173735-2894b96e70ba
@@ -244,7 +248,7 @@ github.com/influxdata/influxdb/pkg/escape
 ## explicit; go 1.10
 github.com/jmoiron/sqlx
 github.com/jmoiron/sqlx/reflectx
-# github.com/jzelinskie/stringz v0.0.0-20210414224931-d6a8ce844a70
+# github.com/jzelinskie/stringz v0.0.1
 ## explicit; go 1.12
 github.com/jzelinskie/stringz
 # github.com/klauspost/compress v1.11.12
@@ -254,7 +258,7 @@ github.com/klauspost/compress/huff0
 github.com/klauspost/compress/snappy
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
-# github.com/lib/pq v1.10.2
+# github.com/lib/pq v1.10.3
 ## explicit; go 1.13
 github.com/lib/pq
 github.com/lib/pq/oid
@@ -271,10 +275,10 @@ github.com/mainflux/mproxy/pkg/websocket
 # github.com/mainflux/senml v1.5.0
 ## explicit; go 1.13
 github.com/mainflux/senml
-# github.com/mattn/go-colorable v0.1.8
+# github.com/mattn/go-colorable v0.1.9
 ## explicit; go 1.13
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.12
+# github.com/mattn/go-isatty v0.0.14
 ## explicit; go 1.12
 github.com/mattn/go-isatty
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
@@ -283,10 +287,10 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mitchellh/go-homedir v1.1.0
 ## explicit
 github.com/mitchellh/go-homedir
-# github.com/mitchellh/mapstructure v1.4.1
+# github.com/mitchellh/mapstructure v1.4.2
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
-# github.com/moby/term v0.0.0-20201216013528-df9cb8a40635
+# github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
 ## explicit; go 1.13
 github.com/moby/term
 github.com/moby/term/windows
@@ -311,8 +315,8 @@ github.com/opencontainers/go-digest
 ## explicit
 github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/specs-go/v1
-# github.com/opencontainers/runc v1.0.0-rc9
-## explicit
+# github.com/opencontainers/runc v1.0.2
+## explicit; go 1.13
 github.com/opencontainers/runc/libcontainer/user
 # github.com/opentracing/opentracing-go v1.2.0
 ## explicit; go 1.14
@@ -320,7 +324,7 @@ github.com/opentracing/opentracing-go
 github.com/opentracing/opentracing-go/ext
 github.com/opentracing/opentracing-go/log
 github.com/opentracing/opentracing-go/mocktracer
-# github.com/ory/dockertest/v3 v3.7.0
+# github.com/ory/dockertest/v3 v3.8.0
 ## explicit; go 1.13
 github.com/ory/dockertest/v3
 github.com/ory/dockertest/v3/docker
@@ -491,7 +495,7 @@ github.com/xdg-go/scram
 # github.com/xdg-go/stringprep v1.0.2
 ## explicit; go 1.11
 github.com/xdg-go/stringprep
-# github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f
+# github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb
 ## explicit
 github.com/xeipuuv/gojsonpointer
 # github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415
@@ -553,7 +557,7 @@ golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
-# golang.org/x/net v0.0.0-20210913180222-943fd674d43e
+# golang.org/x/net v0.0.0-20211020060615-d418f374d309
 ## explicit; go 1.17
 golang.org/x/net/bpf
 golang.org/x/net/context
@@ -573,7 +577,7 @@ golang.org/x/net/trace
 ## explicit
 golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0
+# golang.org/x/sys v0.0.0-20211020174200-9d6173849985
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
@@ -617,14 +621,14 @@ gonum.org/v1/gonum/lapack/gonum
 gonum.org/v1/gonum/lapack/lapack64
 gonum.org/v1/gonum/mat
 gonum.org/v1/gonum/stat
-# google.golang.org/genproto v0.0.0-20210909211513-a8c4777a87af
+# google.golang.org/genproto v0.0.0-20211020151524-b7c3a969101a
 ## explicit; go 1.11
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/api/httpbody
 google.golang.org/genproto/googleapis/rpc/status
 google.golang.org/genproto/protobuf/field_mask
-# google.golang.org/grpc v1.40.0
-## explicit; go 1.11
+# google.golang.org/grpc v1.41.0
+## explicit; go 1.14
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
@@ -663,6 +667,7 @@ google.golang.org/grpc/internal/status
 google.golang.org/grpc/internal/syscall
 google.golang.org/grpc/internal/transport
 google.golang.org/grpc/internal/transport/networktype
+google.golang.org/grpc/internal/xds/env
 google.golang.org/grpc/keepalive
 google.golang.org/grpc/metadata
 google.golang.org/grpc/peer

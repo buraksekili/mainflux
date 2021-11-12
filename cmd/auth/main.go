@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,6 +12,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	pb "github.com/authzed/authzed-go/proto/authzed/api/v1"
+	"github.com/mainflux/mainflux/auth/spicedb"
+
+	"github.com/authzed/authzed-go/v1"
+	"github.com/authzed/grpcutil"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	"github.com/jmoiron/sqlx"
 	"github.com/mainflux/mainflux"
@@ -19,7 +25,6 @@ import (
 	grpcapi "github.com/mainflux/mainflux/auth/api/grpc"
 	httpapi "github.com/mainflux/mainflux/auth/api/http"
 	"github.com/mainflux/mainflux/auth/jwt"
-	"github.com/mainflux/mainflux/auth/keto"
 	"github.com/mainflux/mainflux/auth/postgres"
 	"github.com/mainflux/mainflux/auth/tracing"
 	"github.com/mainflux/mainflux/logger"
@@ -111,9 +116,14 @@ func main() {
 	dbTracer, dbCloser := initJaeger("auth_db", cfg.jaegerURL, logger)
 	defer dbCloser.Close()
 
-	reader, writer := initKeto(cfg.ketoHost, cfg.ketoReadPort, cfg.ketoWritePort, logger)
+	// reader, writer := initKeto(cfg.ketoHost, cfg.ketoReadPort, cfg.ketoWritePort, logger)
+	// policyAgent := keto.NewPolicyAgent(reader, writer)
 
-	svc := newService(db, dbTracer, cfg.secret, logger, reader, writer)
+	spiceClient := initSpiceDB(logger)
+	applyPolicySchema(spiceClient, logger)
+	policyAgent := spicedb.NewPolicyAgent(spiceClient)
+
+	svc := newService(db, dbTracer, cfg.secret, logger, policyAgent)
 	errs := make(chan error, 2)
 
 	go startHTTPServer(tracer, svc, cfg.httpPort, cfg.serverCert, cfg.serverKey, logger, errs)
@@ -127,6 +137,30 @@ func main() {
 
 	err = <-errs
 	logger.Error(fmt.Sprintf("Authentication service terminated: %s", err))
+}
+
+func applyPolicySchema(spiceClient *authzed.Client, logger logger.Logger) {
+	request := &pb.WriteSchemaRequest{Schema: spicedb.Schema}
+	if _, err := spiceClient.WriteSchema(context.Background(), request); err != nil {
+		logger.Error(fmt.Sprintf("failed to write schema: %s", err))
+		os.Exit(1)
+	}
+	logger.Info("Schema applied successfully.")
+}
+
+func initSpiceDB(logger logger.Logger) *authzed.Client {
+	client, err := authzed.NewClient(
+		"mainflux-spicedb:50051",
+		grpc.WithInsecure(),
+		grpcutil.WithInsecureBearerToken("somerandomkeyhere"),
+	)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Failed to init SpiceDB: %s", err))
+		os.Exit(1)
+	}
+	logger.Info("spiceDB initialized")
+
+	return client
 }
 
 func loadConfig() config {
@@ -206,19 +240,17 @@ func connectToDB(dbConfig postgres.Config, logger logger.Logger) *sqlx.DB {
 	return db
 }
 
-func newService(db *sqlx.DB, tracer opentracing.Tracer, secret string, logger logger.Logger, reader acl.CheckServiceClient, writer acl.WriteServiceClient) auth.Service {
+func newService(db *sqlx.DB, tracer opentracing.Tracer, secret string, logger logger.Logger, policyAgent auth.PolicyAgent) auth.Service {
 	database := postgres.NewDatabase(db)
 	keysRepo := tracing.New(postgres.New(database), tracer)
 
 	groupsRepo := postgres.NewGroupRepo(database)
 	groupsRepo = tracing.GroupRepositoryMiddleware(tracer, groupsRepo)
 
-	pa := keto.NewPolicyAgent(reader, writer)
-
 	idProvider := uuid.New()
 	t := jwt.New(secret)
 
-	svc := auth.New(keysRepo, groupsRepo, idProvider, t, pa)
+	svc := auth.New(keysRepo, groupsRepo, idProvider, t, policyAgent)
 	svc = api.LoggingMiddleware(svc, logger)
 	svc = api.MetricsMiddleware(
 		svc,
