@@ -143,14 +143,15 @@ type Service interface {
 
 // PageMetadata contains page metadata that helps navigation.
 type PageMetadata struct {
-	Total        uint64
-	Offset       uint64                 `json:"offset,omitempty"`
-	Limit        uint64                 `json:"limit,omitempty"`
-	Name         string                 `json:"name,omitempty"`
-	Order        string                 `json:"order,omitempty"`
-	Dir          string                 `json:"dir,omitempty"`
-	Metadata     map[string]interface{} `json:"metadata,omitempty"`
-	Disconnected bool                   // Used for connected or disconnected lists
+	Total          uint64
+	Offset         uint64                 `json:"offset,omitempty"`
+	Limit          uint64                 `json:"limit,omitempty"`
+	Name           string                 `json:"name,omitempty"`
+	Order          string                 `json:"order,omitempty"`
+	Dir            string                 `json:"dir,omitempty"`
+	Metadata       map[string]interface{} `json:"metadata,omitempty"`
+	Disconnected   bool                   // Used for connected or disconnected lists
+	FetchAllThings bool                   // Used for identifying fetching all things or explicitly shared things.
 }
 
 var _ Service = (*thingsService)(nil)
@@ -309,26 +310,15 @@ func (ts *thingsService) ListThings(ctx context.Context, token string, pm PageMe
 		return Page{}, errors.Wrap(ErrUnauthorizedAccess, err)
 	}
 
+	if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err == nil {
+		pm.FetchAllThings = true
+	}
+
 	page, err := ts.things.RetrieveAll(ctx, res.GetEmail(), pm)
 	if err != nil {
 		return Page{}, err
 	}
 
-	// If the token belongs to admin, return the page directly.
-	if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err == nil {
-		return page, nil
-	}
-
-	ths := []Thing{}
-	for _, thing := range page.Things {
-		for _, action := range []string{readRelationKey, writeRelationKey, deleteRelationKey} {
-			if err := ts.authorize(ctx, res.GetId(), thing.ID, action); err == nil {
-				ths = append(ths, thing)
-				break
-			}
-		}
-	}
-	page.Things = ths
 	return page, nil
 }
 

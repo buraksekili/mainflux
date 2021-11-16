@@ -23,16 +23,17 @@ import (
 )
 
 const (
-	contentType = "application/json"
-	offsetKey   = "offset"
-	limitKey    = "limit"
-	nameKey     = "name"
-	orderKey    = "order"
-	dirKey      = "dir"
-	metadataKey = "metadata"
-	disconnKey  = "disconnected"
-	defOffset   = 0
-	defLimit    = 10
+	contentType     = "application/json"
+	offsetKey       = "offset"
+	limitKey        = "limit"
+	nameKey         = "name"
+	orderKey        = "order"
+	dirKey          = "dir"
+	metadataKey     = "metadata"
+	disconnKey      = "disconnected"
+	sharedWithMeKey = "sharedwithme"
+	defOffset       = 0
+	defLimit        = 10
 )
 
 // MakeHandler returns a HTTP handler for API endpoints.
@@ -356,16 +357,21 @@ func decodeList(_ context.Context, r *http.Request) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	swm, err := httputil.ReadBoolQuery(r, sharedWithMeKey, false)
+	if err != nil {
+		return nil, err
+	}
 
 	req := listResourcesReq{
 		token: r.Header.Get("Authorization"),
 		pageMetadata: things.PageMetadata{
-			Offset:   o,
-			Limit:    l,
-			Name:     n,
-			Order:    or,
-			Dir:      d,
-			Metadata: m,
+			Offset:       o,
+			Limit:        l,
+			Name:         n,
+			Order:        or,
+			Dir:          d,
+			Metadata:     m,
+			FetchAllThings: swm,
 		},
 	}
 
