@@ -48,6 +48,7 @@ var (
 
 const (
 	usersObjectKey    = "users"
+	authoritiesObject = "authorities"
 	memberRelationKey = "member"
 	readRelationKey   = "read"
 	writeRelationKey  = "write"
@@ -311,6 +312,11 @@ func (ts *thingsService) ListThings(ctx context.Context, token string, pm PageMe
 	page, err := ts.things.RetrieveAll(ctx, res.GetEmail(), pm)
 	if err != nil {
 		return Page{}, err
+	}
+
+	// If the token belongs to admin, return the page directly.
+	if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err == nil {
+		return page, nil
 	}
 
 	ths := []Thing{}
