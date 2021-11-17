@@ -311,24 +311,19 @@ func (ts *thingsService) ListThings(ctx context.Context, token string, pm PageMe
 		return Page{}, errors.Wrap(ErrUnauthorizedAccess, err)
 	}
 
-	isAdmin := false
+	subject := res.GetId()
 	if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err == nil {
-		fmt.Println("admin found")
-		isAdmin = true
+		subject = "members:authorities#member"
 		pm.FetchSharedThings = true
 	}
 
-	fmt.Println("FetchSharedThings option", pm.FetchSharedThings)
 	if pm.FetchSharedThings {
-		req := &mainflux.ListPoliciesReq{Act: "read", Sub: res.GetId()}
-		if isAdmin {
-			req.Sub = ""
-		}
-
+		req := &mainflux.ListPoliciesReq{Act: "read", Sub: subject}
 		lpr, err := ts.auth.ListPolicies(ctx, req)
 		if err != nil {
 			return Page{}, err
 		}
+
 		var page Page
 		for _, thingID := range lpr.Policies {
 			page.Things = append(page.Things, Thing{ID: thingID})
@@ -336,7 +331,6 @@ func (ts *thingsService) ListThings(ctx context.Context, token string, pm PageMe
 		return page, nil
 	}
 
-	fmt.Println("fetching from database")
 	page, err := ts.things.RetrieveAll(ctx, res.GetEmail(), pm)
 	if err != nil {
 		return Page{}, err
