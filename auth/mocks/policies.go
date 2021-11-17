@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/mainflux/mainflux/auth"
+	acl "github.com/ory/keto/proto/ory/keto/acl/v1alpha1"
 )
 
 type MockSubjectSet struct {
@@ -59,4 +60,9 @@ func (pa *policyAgentMock) DeletePolicy(ctx context.Context, pr auth.PolicyReq) 
 		}
 	}
 	return nil
+}
+
+func (pa *policyAgentMock) RetrievePolicies(ctx context.Context, pr auth.PolicyReq) ([]*acl.RelationTuple, error) {
+	// Not implemented yet.
+	return []*acl.RelationTuple{}, nil
 }

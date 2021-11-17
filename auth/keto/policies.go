@@ -5,7 +5,9 @@ package keto
 
 import (
 	"context"
+	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/mainflux/mainflux/auth"
 	"github.com/mainflux/mainflux/pkg/errors"
@@ -20,16 +22,17 @@ const (
 type policyAgent struct {
 	writer  acl.WriteServiceClient
 	checker acl.CheckServiceClient
+	reader  acl.ReadServiceClient
 }
 
 // NewPolicyAgent returns a gRPC communication functionalities
 // to communicate with ORY Keto.
-func NewPolicyAgent(checker acl.CheckServiceClient, writer acl.WriteServiceClient) auth.PolicyAgent {
-	return policyAgent{checker: checker, writer: writer}
+func NewPolicyAgent(checker acl.CheckServiceClient, writer acl.WriteServiceClient, reader acl.ReadServiceClient) auth.PolicyAgent {
+	return policyAgent{checker: checker, writer: writer, reader: reader}
 }
 
-func (c policyAgent) CheckPolicy(ctx context.Context, pr auth.PolicyReq) error {
-	res, err := c.checker.Check(context.Background(), &acl.CheckRequest{
+func (pa policyAgent) CheckPolicy(ctx context.Context, pr auth.PolicyReq) error {
+	res, err := pa.checker.Check(context.Background(), &acl.CheckRequest{
 		Namespace: ketoNamespace,
 		Object:    pr.Object,
 		Relation:  pr.Relation,
@@ -44,8 +47,19 @@ func (c policyAgent) CheckPolicy(ctx context.Context, pr auth.PolicyReq) error {
 	return nil
 }
 
-func (c policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
-	trt := c.writer.TransactRelationTuples
+func (pa policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
+	var ss *acl.Subject
+	switch isSubjectSet(pr.Subject) {
+	case true:
+		namespace, object, relation := parseSubjectSet(pr.Subject)
+		ss = &acl.Subject{
+			Ref: &acl.Subject_Set{Set: &acl.SubjectSet{Namespace: namespace, Object: object, Relation: relation}},
+		}
+	default:
+		ss = &acl.Subject{Ref: &acl.Subject_Id{Id: pr.Subject}}
+	}
+
+	trt := pa.writer.TransactRelationTuples
 	_, err := trt(context.Background(), &acl.TransactRelationTuplesRequest{
 		RelationTupleDeltas: []*acl.RelationTupleDelta{
 			{
@@ -54,18 +68,19 @@ func (c policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
 					Namespace: ketoNamespace,
 					Object:    pr.Object,
 					Relation:  pr.Relation,
-					Subject: &acl.Subject{Ref: &acl.Subject_Id{
-						Id: pr.Subject,
-					}},
+					Subject:   ss,
 				},
 			},
 		},
 	})
+	if err != nil {
+		fmt.Println("cannot add policy because ", err.Error())
+	}
 	return err
 }
 
-func (c policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) error {
-	trt := c.writer.TransactRelationTuples
+func (pa policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) error {
+	trt := pa.writer.TransactRelationTuples
 	_, err := trt(context.Background(), &acl.TransactRelationTuplesRequest{
 		RelationTupleDeltas: []*acl.RelationTupleDelta{
 			{
@@ -82,6 +97,20 @@ func (c policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) error 
 		},
 	})
 	return err
+}
+
+func (pa policyAgent) RetrievePolicies(ctx context.Context, pr auth.PolicyReq) ([]*acl.RelationTuple, error) {
+	res, err := pa.reader.ListRelationTuples(ctx, &acl.ListRelationTuplesRequest{
+		Query: &acl.ListRelationTuplesRequest_Query{
+			Namespace: ketoNamespace,
+			Object:    pr.Object,
+			Relation:  pr.Relation,
+		},
+	})
+	if err != nil {
+		return []*acl.RelationTuple{}, err
+	}
+	return res.GetRelationTuples(), nil
 }
 
 // getSubject returns a 'subject' field for ACL(access control lists).
@@ -109,4 +138,25 @@ func isSubjectSet(subject string) bool {
 		return false
 	}
 	return r.MatchString(subject)
+}
+
+func parseSubjectSet(subjectSet string) (namespace, object, relation string) {
+	if !isSubjectSet(subjectSet) {
+		return
+	}
+	r := strings.Split(subjectSet, ":")
+	if len(r) != 2 {
+		return
+	}
+	namespace = r[0]
+
+	r = strings.Split(r[1], "#")
+	if len(r) != 2 {
+		return
+	}
+
+	object = r[0]
+	relation = r[1]
+
+	return
 }
