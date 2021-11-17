@@ -27,7 +27,7 @@ type authServiceMock struct {
 
 func (svc authServiceMock) ListPolicies(ctx context.Context, in *mainflux.ListPoliciesReq, opts ...grpc.CallOption) (*mainflux.ListPoliciesRes, error) {
 	res := mainflux.ListPoliciesRes{}
-	for key, _ := range svc.policies {
+	for key := range svc.policies {
 		res.Policies = append(res.Policies, key)
 	}
 	return &res, nil
