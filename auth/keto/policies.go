@@ -5,7 +5,6 @@ package keto
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -73,9 +72,6 @@ func (pa policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
 			},
 		},
 	})
-	if err != nil {
-		fmt.Println("cannot add policy because ", err.Error())
-	}
 	return err
 }
 
