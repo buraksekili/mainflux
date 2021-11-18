@@ -240,7 +240,9 @@ func (ts *thingsService) UpdateThing(ctx context.Context, token string, thing Th
 	}
 
 	if err := ts.authorize(ctx, res.GetId(), thing.ID, writeRelationKey); err != nil {
-		return err
+		if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err != nil {
+			return err
+		}
 	}
 
 	thing.Owner = res.GetEmail()
@@ -284,7 +286,9 @@ func (ts *thingsService) UpdateKey(ctx context.Context, token, id, key string) e
 	}
 
 	if err := ts.authorize(ctx, res.GetId(), id, writeRelationKey); err != nil {
-		return err
+		if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err != nil {
+			return err
+		}
 	}
 
 	owner := res.GetEmail()
@@ -299,7 +303,9 @@ func (ts *thingsService) ViewThing(ctx context.Context, token, id string) (Thing
 	}
 
 	if err := ts.authorize(ctx, res.GetId(), id, readRelationKey); err != nil {
-		return Thing{}, err
+		if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err != nil {
+			return Thing{}, err
+		}
 	}
 
 	return ts.things.RetrieveByID(ctx, res.GetEmail(), id)
@@ -355,7 +361,9 @@ func (ts *thingsService) RemoveThing(ctx context.Context, token, id string) erro
 	}
 
 	if err := ts.authorize(ctx, res.GetId(), id, deleteRelationKey); err != nil {
-		return err
+		if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err != nil {
+			return err
+		}
 	}
 
 	if err := ts.thingCache.Remove(ctx, id); err != nil {
