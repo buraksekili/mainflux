@@ -154,9 +154,6 @@ func isSubjectSet(subject string) bool {
 }
 
 func parseSubjectSet(subjectSet string) (namespace, object, relation string) {
-	if !isSubjectSet(subjectSet) {
-		return
-	}
 	r := strings.Split(subjectSet, ":")
 	if len(r) != 2 {
 		return
