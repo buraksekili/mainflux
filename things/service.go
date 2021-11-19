@@ -53,6 +53,7 @@ const (
 	readRelationKey   = "read"
 	writeRelationKey  = "write"
 	deleteRelationKey = "delete"
+	adminSubject      = "members:authorities#member"
 )
 
 // Service specifies an API that must be fullfiled by the domain service
@@ -319,7 +320,7 @@ func (ts *thingsService) ListThings(ctx context.Context, token string, pm PageMe
 
 	subject := res.GetId()
 	if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err == nil {
-		subject = "members:authorities#member"
+		subject = adminSubject
 		pm.FetchSharedThings = true
 	}
 
