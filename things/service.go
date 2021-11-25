@@ -328,8 +328,9 @@ func (ts *thingsService) ListThings(ctx context.Context, token string, pm PageMe
 		return page, err
 	}
 
-	// If the user is not admin, check 'shared' parameter from pagemetada.
-	// If user provides 'shared' key, fetch things from policies.
+	// If the user is not admin, check 'shared' parameter from page metadata.
+	// If user provides 'shared' key, fetch things from policies. Otherwise,
+	// fetch things from the database based on thing's 'owner' field.
 	if pm.FetchSharedThings {
 		req := &mainflux.ListPoliciesReq{Act: "read", Sub: subject}
 		lpr, err := ts.auth.ListPolicies(ctx, req)
@@ -404,6 +405,12 @@ func (ts *thingsService) UpdateChannel(ctx context.Context, token string, channe
 		return errors.Wrap(ErrUnauthorizedAccess, err)
 	}
 
+	if err := ts.authorize(ctx, res.GetId(), channel.ID, writeRelationKey); err != nil {
+		if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err != nil {
+			return err
+		}
+	}
+
 	channel.Owner = res.GetEmail()
 	return ts.channels.Update(ctx, channel)
 }
@@ -412,6 +419,12 @@ func (ts *thingsService) ViewChannel(ctx context.Context, token, id string) (Cha
 	res, err := ts.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
 		return Channel{}, errors.Wrap(ErrUnauthorizedAccess, err)
+	}
+
+	if err := ts.authorize(ctx, res.GetId(), id, readRelationKey); err != nil {
+		if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err != nil {
+			return Channel{}, err
+		}
 	}
 
 	return ts.channels.RetrieveByID(ctx, res.GetEmail(), id)
@@ -423,6 +436,17 @@ func (ts *thingsService) ListChannels(ctx context.Context, token string, pm Page
 		return ChannelsPage{}, errors.Wrap(ErrUnauthorizedAccess, err)
 	}
 
+	// If the user is admin, fetch all channels from the database.
+	if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err == nil {
+		pm.FetchSharedThings = true
+		page, err := ts.channels.RetrieveAll(ctx, res.GetEmail(), pm)
+		if err != nil {
+			return ChannelsPage{}, err
+		}
+		return page, err
+	}
+
+	// By default, fetch channels from database based on the owner field.
 	return ts.channels.RetrieveAll(ctx, res.GetEmail(), pm)
 }
 
@@ -439,6 +463,12 @@ func (ts *thingsService) RemoveChannel(ctx context.Context, token, id string) er
 	res, err := ts.auth.Identify(ctx, &mainflux.Token{Value: token})
 	if err != nil {
 		return errors.Wrap(ErrUnauthorizedAccess, err)
+	}
+
+	if err := ts.authorize(ctx, res.GetId(), id, deleteRelationKey); err != nil {
+		if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err != nil {
+			return err
+		}
 	}
 
 	if err := ts.channelCache.Remove(ctx, id); err != nil {

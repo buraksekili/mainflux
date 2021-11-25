@@ -124,6 +124,7 @@ func (cr channelRepository) RetrieveAll(ctx context.Context, owner string, pm th
 	nq, name := getNameQuery(pm.Name)
 	oq := getOrderQuery(pm.Order)
 	dq := getDirQuery(pm.Dir)
+	ownerQuery := getOwnerQuery(pm.FetchSharedThings)
 	meta, mq, err := getMetadataQuery(pm.Metadata)
 	if err != nil {
 		return things.ChannelsPage{}, errors.Wrap(things.ErrSelectEntity, err)
@@ -137,13 +138,16 @@ func (cr channelRepository) RetrieveAll(ctx context.Context, owner string, pm th
 	if nq != "" {
 		query = append(query, nq)
 	}
-
-	if len(query) > 0 {
-		whereClause = fmt.Sprintf("AND %s", strings.Join(query, " AND "))
+	if ownerQuery != "" {
+		query = append(query, ownerQuery)
 	}
 
-	q := fmt.Sprintf(`SELECT id, name, metadata FROM channels
-	      WHERE owner = :owner %s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, whereClause, oq, dq)
+	if len(query) > 0 {
+		whereClause = fmt.Sprintf(" WHERE %s", strings.Join(query, " AND "))
+	}
+
+	q := fmt.Sprintf(`SELECT id, name, metadata FROM channels 
+	%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, whereClause, oq, dq)
 
 	params := map[string]interface{}{
 		"owner":    owner,
@@ -169,7 +173,7 @@ func (cr channelRepository) RetrieveAll(ctx context.Context, owner string, pm th
 		items = append(items, ch)
 	}
 
-	cq := fmt.Sprintf(`SELECT COUNT(*) FROM channels WHERE owner = :owner %s;`, whereClause)
+	cq := fmt.Sprintf(`SELECT COUNT(*) FROM channels %s;`, whereClause)
 
 	total, err := total(ctx, cr.db, cq, params)
 	if err != nil {
