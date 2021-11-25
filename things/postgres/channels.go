@@ -103,13 +103,12 @@ func (cr channelRepository) Update(ctx context.Context, channel things.Channel) 
 }
 
 func (cr channelRepository) RetrieveByID(ctx context.Context, owner, id string) (things.Channel, error) {
-	q := `SELECT name, metadata FROM channels WHERE id = $1 AND owner = $2;`
+	q := `SELECT name, metadata, owner FROM channels WHERE id = $1;`
 
 	dbch := dbChannel{
-		ID:    id,
-		Owner: owner,
+		ID: id,
 	}
-	if err := cr.db.QueryRowxContext(ctx, q, id, owner).StructScan(&dbch); err != nil {
+	if err := cr.db.QueryRowxContext(ctx, q, id).StructScan(&dbch); err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if err == sql.ErrNoRows || ok && errInvalid == pqErr.Code.Name() {
 			return things.Channel{}, things.ErrNotFound

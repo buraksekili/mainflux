@@ -204,7 +204,7 @@ func TestShareThing(t *testing.T) {
 			thingID:  th.ID,
 			policies: []string{"", "read"},
 			userIDs:  []string{email2},
-			err:      fmt.Errorf("cannot claim ownership on thing '%s' by user '%s': %s", th.ID, email2, things.ErrMalformedEntity),
+			err:      fmt.Errorf("cannot claim ownership on object '%s' by user '%s': %s", th.ID, email2, things.ErrMalformedEntity),
 		},
 	}
 

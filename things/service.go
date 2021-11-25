@@ -257,22 +257,24 @@ func (ts *thingsService) ShareThing(ctx context.Context, token, thingID string, 
 	}
 
 	if err := ts.authorize(ctx, res.GetId(), thingID, writeRelationKey); err != nil {
-		return err
+		if err := ts.authorize(ctx, res.GetId(), authoritiesObject, memberRelationKey); err != nil {
+			return err
+		}
 	}
 
 	return ts.claimOwnership(ctx, thingID, actions, userIDs)
 }
 
-func (ts *thingsService) claimOwnership(ctx context.Context, thingID string, actions, userIDs []string) error {
+func (ts *thingsService) claimOwnership(ctx context.Context, objectID string, actions, userIDs []string) error {
 	var errs error
 	for _, userID := range userIDs {
 		for _, action := range actions {
-			apr, err := ts.auth.AddPolicy(ctx, &mainflux.AddPolicyReq{Obj: thingID, Act: action, Sub: userID})
+			apr, err := ts.auth.AddPolicy(ctx, &mainflux.AddPolicyReq{Obj: objectID, Act: action, Sub: userID})
 			if err != nil {
-				errs = errors.Wrap(fmt.Errorf("cannot claim ownership on thing '%s' by user '%s': %s", thingID, userID, err), errs)
+				errs = errors.Wrap(fmt.Errorf("cannot claim ownership on object '%s' by user '%s': %s", objectID, userID, err), errs)
 			}
 			if !apr.GetAuthorized() {
-				errs = errors.Wrap(fmt.Errorf("cannot claim ownership on thing '%s' by user '%s': unauthorized", thingID, userID), errs)
+				errs = errors.Wrap(fmt.Errorf("cannot claim ownership on object '%s' by user '%s': unauthorized", objectID, userID), errs)
 			}
 		}
 	}
@@ -387,16 +389,38 @@ func (ts *thingsService) CreateChannels(ctx context.Context, token string, chann
 		return []Channel{}, errors.Wrap(ErrUnauthorizedAccess, err)
 	}
 
-	for i := range channels {
-		channels[i].ID, err = ts.idProvider.ID()
+	chs := []Channel{}
+	for _, channel := range channels {
+		ch, err := ts.createChannel(ctx, &channel, res)
 		if err != nil {
-			return []Channel{}, errors.Wrap(ErrCreateUUID, err)
+			return []Channel{}, err
 		}
+		chs = append(chs, ch)
+	}
+	return chs, nil
+}
 
-		channels[i].Owner = res.GetEmail()
+func (ts *thingsService) createChannel(ctx context.Context, channel *Channel, identity *mainflux.UserIdentity) (Channel, error) {
+	chID, err := ts.idProvider.ID()
+	if err != nil {
+		return Channel{}, errors.Wrap(ErrCreateUUID, err)
+	}
+	channel.ID = chID
+	channel.Owner = identity.GetEmail()
+
+	chs, err := ts.channels.Save(ctx, *channel)
+	if err != nil {
+		return Channel{}, err
+	}
+	if len(chs) == 0 {
+		return Channel{}, ErrCreateEntity
 	}
 
-	return ts.channels.Save(ctx, channels...)
+	ss := fmt.Sprintf("%s:%s#%s", "members", authoritiesObject, memberRelationKey)
+	if err := ts.claimOwnership(ctx, chs[0].ID, []string{readRelationKey, writeRelationKey, deleteRelationKey}, []string{identity.GetId(), ss}); err != nil {
+		return Channel{}, err
+	}
+	return chs[0], nil
 }
 
 func (ts *thingsService) UpdateChannel(ctx context.Context, token string, channel Channel) error {
