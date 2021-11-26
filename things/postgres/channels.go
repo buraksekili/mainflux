@@ -145,8 +145,8 @@ func (cr channelRepository) RetrieveAll(ctx context.Context, owner string, pm th
 		whereClause = fmt.Sprintf(" WHERE %s", strings.Join(query, " AND "))
 	}
 
-	q := fmt.Sprintf(`SELECT id, name, metadata FROM channels 
-	%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, whereClause, oq, dq)
+	q := fmt.Sprintf(`SELECT id, name, metadata FROM channels
+		%s ORDER BY %s %s LIMIT :limit OFFSET :offset;`, whereClause, oq, dq)
 
 	params := map[string]interface{}{
 		"owner":    owner,
