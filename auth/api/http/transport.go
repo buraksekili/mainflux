@@ -8,9 +8,9 @@ import (
 	"github.com/go-zoo/bone"
 	"github.com/mainflux/mainflux"
 	"github.com/mainflux/mainflux/auth"
-	"github.com/mainflux/mainflux/auth/api/http/groups"
 	"github.com/mainflux/mainflux/auth/api/http/keys"
 	"github.com/mainflux/mainflux/auth/api/http/policies"
+	groups "github.com/mainflux/mainflux/internal/groups/api"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
